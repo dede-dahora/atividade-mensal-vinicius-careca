@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Festa Junina</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f1e9;
+            color: #5c3a21;
+        }
+        h1 {
+            color: #e67e22;
+            text-align: center;
+            border-bottom: 2px solid #d35400;
+            padding-bottom: 10px;
+        }
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+        .chart-box {
+            width: 45%;
+            min-width: 300px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .interaction-panel {
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #d35400;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Análise de Dados - Festa Junina</h1>
+    
+    <div class="chart-container">
+        <div class="chart-box">
+            <h2>Preferência de Comidas</h2>
+            <canvas id="foodChart"></canvas>
+        </div>
+        
+        <div class="chart-box">
+            <h2>Avaliação por Faixa Etária</h2>
+            <canvas id="ageRatingChart"></canvas>
+        </div>
+        
+        <div class="chart-box">
+            <h2>Participação na Quadrilha</h2>
+            <canvas id="quadrilhaChart"></canvas>
+        </div>
+        
+        <div class="chart-box">
+            <h2>Gasto Médio por Item</h2>
+            <canvas id="spendingChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="interaction-panel">
+        <h2>Adicionar Novo Participante</h2>
+        <div>
+            <label>Faixa Etária:</label>
+            <select id="newAge">
+                <option value="Adolescente">Adolescente</option>
+                <option value="Adulto">Adulto</option>
+                <option value="Idoso">Idoso</option>
+            </select>
+        </div>
+        <div>
+            <label>Item Preferido:</label>
+            <select id="newFood">
+                <option value="Canjica">Canjica</option>
+                <option value="Paçoca">Paçoca</option>
+                <option value="Cachorro-quente">Cachorro-quente</option>
+                <option value="Pé de moleque">Pé de moleque</option>
+                <option value="Quentão">Quentão</option>
+            </select>
+        </div>
+        <div>
+            <label>Gasto (R$):</label>
+            <input type="number" id="newSpending" step="0.01" min="0">
+        </div>
+        <div>
+            <label>Nota de Organização (0-10):</label>
+            <input type="number" id="newRating" min="0" max="10">
+        </div>
+        <div>
+            <label>Participa da Quadrilha?</label>
+            <select id="newDance">
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <button onclick="addParticipant()">Adicionar Participante</button>
+    </div>
+
+    <script>
+        // Dados iniciais (seriam substituídos por dados reais do banco)
+        const initialData = {
+            foodPref: {
+                labels: ['Canjica', 'Paçoca', 'Cachorro-quente', 'Pé de moleque', 'Quentão'],
+                data: [32, 28, 19, 12, 9]
+            },
+            ageRating: {
+                labels: ['Adolescente', 'Adulto', 'Idoso'],
+                data: [7.2, 6.8, 5.4]
+            },
+            quadrilha: {
+                labels: ['Participa', 'Não participa'],
+                data: [45, 55]
+            },
+            spending: {
+                labels: ['Canjica', 'Paçoca', 'Cachorro-quente', 'Pé de moleque', 'Quentão'],
+                data: [18.50, 15.20, 22.30, 12.80, 9.40]
+            }
+        };
+
+        // Cores temáticas para os gráficos
+        const colors = {
+            background: [
+                'rgba(230, 126, 34, 0.7)',
+                'rgba(155, 89, 182, 0.7)',
+                'rgba(46, 204, 113, 0.7)',
+                'rgba(241, 196, 15, 0.7)',
+                'rgba(231, 76, 60, 0.7)'
+            ],
+            border: [
+                'rgba(230, 126, 34, 1)',
+                'rgba(155, 89, 182, 1)',
+                'rgba(46, 204, 113, 1)',
+                'rgba(241, 196, 15, 1)',
+                'rgba(231, 76, 60, 1)'
+            ]
+        };
+
+        // Configuração dos gráficos
+        const foodChart = new Chart(
+            document.getElementById('foodChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: initialData.foodPref.labels,
+                    datasets: [{
+                        label: 'Preferência de Comidas',
+                        data: initialData.foodPref.data,
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade de Pessoas'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        const ageRatingChart = new Chart(
+            document.getElementById('ageRatingChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: initialData.ageRating.labels,
+                    datasets: [{
+                        label: 'Avaliação Média (0-10)',
+                        data: initialData.ageRating.data,
+                        backgroundColor: 'rgba(230, 126, 34, 0.2)',
+                        borderColor: 'rgba(230, 126, 34, 1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'Nota Média'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        const quadrilhaChart = new Chart(
+            document.getElementById('quadrilhaChart'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: initialData.quadrilha.labels,
+                    datasets: [{
+                        data: initialData.quadrilha.data,
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(231, 76, 60, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            }
+        );
+
+        const spendingChart = new Chart(
+            document.getElementById('spendingChart'),
+            {
+                type: 'radar',
+                data: {
+                    labels: initialData.spending.labels,
+                    datasets: [{
+                        label: 'Gasto Médio (R$)',
+                        data: initialData.spending.data,
+                        backgroundColor: 'rgba(241, 196, 15, 0.2)',
+                        borderColor: 'rgba(241, 196, 15, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(241, 196, 15, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 25
+                        }
+                    }
+                }
+            }
+        );
+
+        // Função para adicionar novo participante
+        function addParticipant() {
+            const newFood = document.getElementById('newFood').value;
+            const newAge = document.getElementById('newAge').value;
+            const newDance = document.getElementById('newDance').value;
+            
+            // Atualiza os gráficos (simulação - na prática seria uma chamada ao backend)
+            const foodIndex = initialData.foodPref.labels.indexOf(newFood);
+            initialData.foodPref.data[foodIndex]++;
+            
+            const ageIndex = initialData.ageRating.labels.indexOf(newAge);
+            const newRating = parseInt(document.getElementById('newRating').value);
+            initialData.ageRating.data[ageIndex] = 
+                ((initialData.ageRating.data[ageIndex] * (initialData.foodPref.data.reduce((a,b) => a+b) - 1) + newRating) / 
+                initialData.foodPref.data.reduce((a,b) => a+b);
+            
+            const danceIndex = newDance === 'Sim' ? 0 : 1;
+            initialData.quadrilha.data[danceIndex]++;
+            
+            const spending = parseFloat(document.getElementById('newSpending').value);
+            initialData.spending.data[foodIndex] = 
+                ((initialData.spending.data[foodIndex] * (initialData.foodPref.data[foodIndex]-1)) + spending) / 
+                initialData.foodPref.data[foodIndex];
+            
+            // Atualiza todos os gráficos
+            foodChart.update();
+            ageRatingChart.update();
+            quadrilhaChart.update();
+            spendingChart.update();
+            
+            alert('Novo participante adicionado com sucesso!');
+        }
+    </script>
+</body>
+</html>
