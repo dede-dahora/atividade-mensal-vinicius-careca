@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Festa Junina</title>
+    <title>Análise da Festa Junina do Colégio Paulo de Tarso</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -299,7 +299,7 @@
             const newRating = parseInt(document.getElementById('newRating').value);
             initialData.ageRating.data[ageIndex] = 
                 ((initialData.ageRating.data[ageIndex] * (initialData.foodPref.data.reduce((a,b) => a+b) - 1) + newRating) / 
-                initialData.foodPref.data.reduce((a,b) => a+b);
+                initialData.foodPref.data.reduce((a,b) => a+b));
             
             const danceIndex = newDance === 'Sim' ? 0 : 1;
             initialData.quadrilha.data[danceIndex]++;
